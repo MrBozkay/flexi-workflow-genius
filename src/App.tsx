@@ -56,4 +56,3 @@ const App = () => {
 };
 
 export default App;
-</lov-add-dependency>@xyflow/react
