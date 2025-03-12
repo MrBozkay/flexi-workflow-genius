@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,18 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				workflow: {
+					node: {
+						DEFAULT: '#ffffff',
+						trigger: '#FF6B6B',
+						ai: '#6B66FF',
+						condition: '#66D9E8',
+						action: '#FFD166',
+					},
+					connector: '#94A3B8',
+					grid: 'rgba(0, 0, 0, 0.05)',
+					selection: 'rgba(107, 102, 255, 0.3)',
 				}
 			},
 			borderRadius: {
@@ -84,11 +97,35 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				fadeIn: {
+					from: { opacity: '0' },
+					to: { opacity: '1' }
+				},
+				slideIn: {
+					from: { transform: 'translateY(10px)', opacity: '0' },
+					to: { transform: 'translateY(0)', opacity: '1' }
+				},
+				pulse: {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.5' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				fadeIn: 'fadeIn 0.5s ease-out',
+				slideIn: 'slideIn 0.5s ease-out',
+				pulse: 'pulse 1.5s ease-in-out infinite'
+			},
+			fontFamily: {
+				sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+				mono: ['var(--font-mono)', 'monospace'],
+			},
+			boxShadow: {
+				node: '0 4px 12px rgba(0, 0, 0, 0.08)',
+				nodeHover: '0 8px 24px rgba(0, 0, 0, 0.12)',
+				menuItem: '0 2px 5px rgba(0, 0, 0, 0.05)',
 			}
 		}
 	},
