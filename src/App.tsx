@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Workflows from "./pages/Workflows";
 import Templates from "./pages/Templates";
@@ -15,11 +15,26 @@ import NotFound from "./pages/NotFound";
 import CommunityWorkflows from "./pages/CommunityWorkflows";
 import CommunityWorkflowDetail from "./pages/CommunityWorkflowDetail";
 import Settings from "./pages/Settings";
+import Auth from "./pages/Auth";
 import { useState, useEffect } from "react";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
-const App = () => {
+// Protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) return null;
+  
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+const AppRoutes = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -45,28 +60,37 @@ const App = () => {
   }
 
   return (
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+      <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
+      <Route path="/workflows/:id" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
+      <Route path="/workflows/new" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
+      <Route path="/community" element={<ProtectedRoute><CommunityWorkflows /></ProtectedRoute>} />
+      <Route path="/community/:id" element={<ProtectedRoute><CommunityWorkflowDetail /></ProtectedRoute>} />
+      <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
+      <Route path="/executions" element={<ProtectedRoute><Executions /></ProtectedRoute>} />
+      <Route path="/integrations/ai" element={<ProtectedRoute><AIModels /></ProtectedRoute>} />
+      <Route path="/integrations/apis" element={<ProtectedRoute><APIConnections /></ProtectedRoute>} />
+      <Route path="/integrations/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
+const App = () => {
+  return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/workflows" element={<Workflows />} />
-            <Route path="/workflows/:id" element={<Workflows />} />
-            <Route path="/workflows/new" element={<Workflows />} />
-            <Route path="/community" element={<CommunityWorkflows />} />
-            <Route path="/community/:id" element={<CommunityWorkflowDetail />} />
-            <Route path="/templates" element={<Templates />} />
-            <Route path="/executions" element={<Executions />} />
-            <Route path="/integrations/ai" element={<AIModels />} />
-            <Route path="/integrations/apis" element={<APIConnections />} />
-            <Route path="/integrations/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

@@ -14,9 +14,12 @@ import {
   Plus 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { UserButton } from '@/components/auth/UserButton';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   return (
     <aside className="w-64 border-r border-border bg-card flex flex-col h-full">
@@ -27,6 +30,7 @@ export function Sidebar() {
           </div>
           <h1 className="text-xl font-semibold">FlexiFlow</h1>
         </div>
+        {user && <UserButton />}
       </div>
       
       <div className="flex flex-col gap-6 p-4 flex-1 overflow-auto">
