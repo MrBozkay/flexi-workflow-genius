@@ -51,6 +51,12 @@ const App = () => {
             <Route path="/workflows/new" element={<Workflows />} />
             <Route path="/community" element={<CommunityWorkflows />} />
             <Route path="/community/:id" element={<CommunityWorkflowDetail />} />
+            <Route path="/templates" element={<NotFound />} />
+            <Route path="/executions" element={<NotFound />} />
+            <Route path="/integrations/ai" element={<NotFound />} />
+            <Route path="/integrations/apis" element={<NotFound />} />
+            <Route path="/integrations/analytics" element={<NotFound />} />
+            <Route path="/settings" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

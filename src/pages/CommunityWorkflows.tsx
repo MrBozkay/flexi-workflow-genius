@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -17,9 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
-// Sample workflow data for the community page
 const communityWorkflows = [
   {
     id: 1,
@@ -93,6 +91,7 @@ const CommunityWorkflows = () => {
   const [selectedTab, setSelectedTab] = useState<string>("popular");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const navigate = useNavigate();
 
   return (
     <AppLayout>
@@ -104,9 +103,7 @@ const CommunityWorkflows = () => {
             </div>
             <h1 className="text-3xl font-bold">Community Workflows</h1>
           </div>
-          <Link to="/workflows/new">
-            <Button>Create New Workflow</Button>
-          </Link>
+          <Button onClick={() => navigate('/workflows/new')}>Create New Workflow</Button>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6 mb-6">

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   Home, 
@@ -16,6 +16,8 @@ import {
 import { Button } from '@/components/ui/button';
 
 export function Sidebar() {
+  const navigate = useNavigate();
+  
   return (
     <aside className="w-64 border-r border-border bg-card flex flex-col h-full">
       <div className="p-4 border-b flex items-center justify-between">
@@ -29,7 +31,11 @@ export function Sidebar() {
       
       <div className="flex flex-col gap-6 p-4 flex-1 overflow-auto">
         <div>
-          <Button variant="default" className="w-full flex items-center gap-2 mb-4">
+          <Button 
+            variant="default" 
+            className="w-full flex items-center gap-2 mb-4"
+            onClick={() => navigate('/workflows/new')}
+          >
             <Plus className="w-4 h-4" />
             <span>New Workflow</span>
           </Button>
@@ -71,7 +77,8 @@ function NavItem({ to, icon, label }: NavItemProps) {
     <NavLink 
       to={to} 
       className={({ isActive }) => 
-        cn("sidebar-item", isActive && "active")
+        cn("flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors", 
+          isActive ? "bg-accent text-accent-foreground font-medium" : "text-muted-foreground")
       }
     >
       {icon}

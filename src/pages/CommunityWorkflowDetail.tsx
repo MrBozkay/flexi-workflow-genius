@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useParams, Link, useNavigate } from 'react-router-dom';
@@ -19,8 +18,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { toast } from "sonner";
 
-// Sample workflow data
 const workflowData = {
   id: 1,
   title: 'Customer Support Chatbot',
@@ -54,7 +53,6 @@ const workflowData = {
   imageUrl: 'https://placehold.co/1200x600/3b82f6/ffffff?text=Customer+Support+Workflow',
 };
 
-// Sample comments
 const comments = [
   {
     id: 1,
@@ -93,6 +91,15 @@ const CommunityWorkflowDetail = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("overview");
   const [isLiked, setIsLiked] = useState(false);
+  
+  const handleForkWorkflow = () => {
+    toast.success("Workflow forked successfully");
+    navigate(`/workflows/${id}`);
+  };
+  
+  const handleDownload = () => {
+    toast.success("Workflow downloaded successfully");
+  };
   
   return (
     <AppLayout>
@@ -219,10 +226,18 @@ const CommunityWorkflowDetail = () => {
                     </div>
                   </div>
                   
-                  <Button variant="default" className="w-full mb-2">
+                  <Button 
+                    variant="default" 
+                    className="w-full mb-2"
+                    onClick={handleForkWorkflow}
+                  >
                     Fork Workflow
                   </Button>
-                  <Button variant="outline" className="w-full mb-4">
+                  <Button 
+                    variant="outline" 
+                    className="w-full mb-4"
+                    onClick={handleDownload}
+                  >
                     Download
                   </Button>
                   

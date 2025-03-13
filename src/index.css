@@ -2,197 +2,106 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+ 
 @layer base {
   :root {
-    --background: 210 50% 98%;
-    --foreground: 210 38% 15%;
-
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
-    --card-foreground: 210 38% 15%;
-
+    --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
-    --popover-foreground: 210 38% 15%;
-
-    --primary: 210 70% 55%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 210 38% 15%;
-
-    --muted: 210 20% 92%;
-    --muted-foreground: 210 20% 45%;
-
-    --accent: 210 30% 92%;
-    --accent-foreground: 210 38% 15%;
-
-    --destructive: 0 65% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 210 15% 90%;
-    --input: 210 15% 88%;
-    --ring: 210 70% 55%;
-
-    --radius: 0.5rem;
-
-    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
-
-  .dark {
-    --background: 210 38% 10%;
-    --foreground: 210 20% 98%;
-
-    --card: 210 38% 14%;
-    --card-foreground: 210 20% 98%;
-
-    --popover: 210 38% 14%;
-    --popover-foreground: 210 20% 98%;
-
-    --primary: 210 70% 65%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 262.1 83.3% 57.8%;
     --primary-foreground: 210 20% 98%;
-
-    --secondary: 210 30% 20%;
-    --secondary-foreground: 210 20% 98%;
-
-    --muted: 210 30% 22%;
-    --muted-foreground: 210 20% 70%;
-
-    --accent: 210 30% 22%;
-    --accent-foreground: 210 20% 98%;
-
-    --destructive: 0 65% 55%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 20% 98%;
-
-    --border: 210 30% 22%;
-    --input: 210 30% 25%;
-    --ring: 210 70% 65%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262.1 83.3% 57.8%;
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 263.4 70% 50.4%;
   }
 }
-
+ 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
-    overflow-x: hidden;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
-  }
-
-  h1 {
-    @apply text-3xl lg:text-4xl;
-  }
-
-  h2 {
-    @apply text-2xl lg:text-3xl;
-  }
-
-  h3 {
-    @apply text-xl lg:text-2xl;
   }
 }
 
-@layer components {
-  .workflow-node {
-    @apply bg-workflow-node border border-border shadow-node rounded-lg transition-all duration-200 min-w-[160px] p-4;
-  }
-  
-  .workflow-node:hover {
-    @apply shadow-nodeHover border-primary/40;
-  }
-  
-  .workflow-node.trigger {
-    @apply bg-gradient-to-b from-white to-workflow-node-trigger/5 border-workflow-node-trigger/30;
-  }
-  
-  .workflow-node.ai {
-    @apply bg-gradient-to-b from-white to-workflow-node-ai/5 border-workflow-node-ai/30;
-  }
-  
-  .workflow-node.condition {
-    @apply bg-gradient-to-b from-white to-workflow-node-condition/5 border-workflow-node-condition/30;
-  }
-  
-  .workflow-node.action {
-    @apply bg-gradient-to-b from-white to-workflow-node-action/5 border-workflow-node-action/30;
-  }
+/* Workflow Node Colors */
+:root {
+  --workflow-node-trigger: theme('colors.amber.500');
+  --workflow-node-ai: theme('colors.purple.500');
+  --workflow-node-condition: theme('colors.blue.500');
+  --workflow-node-action: theme('colors.emerald.500');
+}
 
-  .workflow-connector {
-    @apply stroke-workflow-connector stroke-2 fill-none;
-  }
+.glass-panel {
+  @apply rounded-lg border border-border bg-background/70 backdrop-blur-sm shadow-sm;
+}
 
-  .workflow-handle {
-    @apply w-3 h-3 rounded-full bg-white border-2 border-workflow-connector z-10;
-  }
+/* Animation for the dashboard */
+.animate-fadeIn {
+  animation: fadeIn 0.8s ease-in-out;
+}
 
-  .glass-panel {
-    @apply bg-white/80 backdrop-blur-md border border-white/50 rounded-xl shadow-lg;
-  }
+.animate-slideIn {
+  animation: slideIn 0.8s ease-in-out;
+}
 
-  .sidebar-item {
-    @apply flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors;
-  }
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
-  .sidebar-item:hover {
-    @apply bg-accent text-accent-foreground;
+@keyframes slideIn {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
   }
-
-  .sidebar-item.active {
-    @apply bg-primary text-primary-foreground;
+  to { 
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* React Flow specific styles */
-.react-flow__edge-path {
-  @apply workflow-connector;
+/* Sidebar styles */
+.sidebar-item {
+  @apply flex items-center gap-3 px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors text-muted-foreground;
 }
 
-.react-flow__handle {
-  @apply workflow-handle;
-}
-
-.react-flow__node {
-  @apply workflow-node;
-}
-
-.react-flow__node-trigger {
-  @apply workflow-node trigger;
-}
-
-.react-flow__node-ai {
-  @apply workflow-node ai;
-}
-
-.react-flow__node-condition {
-  @apply workflow-node condition;
-}
-
-.react-flow__node-action {
-  @apply workflow-node action;
-}
-
-.react-flow__background {
-  @apply bg-background;
-}
-
-.react-flow__controls-button {
-  @apply bg-background border-border text-foreground;
-}
-
-.react-flow__edge.selected .react-flow__edge-path {
-  @apply stroke-primary stroke-[3px];
-}
-
-.react-flow__node.selected {
-  @apply border-primary border-2;
-}
-
-.react-flow__panel {
-  @apply bg-background/90 backdrop-blur-sm border border-border rounded-md shadow-sm;
+.sidebar-item.active {
+  @apply bg-accent text-accent-foreground font-medium;
 }
