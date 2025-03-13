@@ -11,6 +11,7 @@ import {
   Connection,
   Edge,
   MarkerType,
+  BackgroundVariant,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { nodeTypes } from './NodeTypes';
@@ -126,7 +127,7 @@ export function WorkflowCanvas() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   
   const onConnect = useCallback(
-    (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds) as typeof initialEdges),
     [setEdges]
   );
 
@@ -168,29 +169,12 @@ export function WorkflowCanvas() {
           gap={24} 
           size={1} 
           color="#94a3b8" 
-          variant="dots"
+          variant="dots" as BackgroundVariant
           className="bg-background" 
         />
 
-        <Panel position="top-left" className="!bg-transparent !shadow-none !border-none">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Node
-            </Button>
-            <Button variant="outline" className="gap-2">
-              <Save className="w-4 h-4" />
-              Save
-            </Button>
-            <Button variant="default" className="gap-2">
-              <Play className="w-4 h-4" />
-              Execute
-            </Button>
-          </div>
-        </Panel>
-
-        {selectedNode && (
-          <Panel position="top-right" className="glass-panel w-80 max-h-[80vh] overflow-auto">
+        <Panel position="top-right" className="glass-panel w-80 max-h-[80vh] overflow-auto">
+          {selectedNode && (
             <Tabs defaultValue="settings">
               <TabsList className="w-full grid grid-cols-2">
                 <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -211,8 +195,8 @@ export function WorkflowCanvas() {
                 </div>
               </TabsContent>
             </Tabs>
-          </Panel>
-        )}
+          )}
+        </Panel>
 
         <Panel position="bottom-left" className="glass-panel">
           <div className="p-4">
