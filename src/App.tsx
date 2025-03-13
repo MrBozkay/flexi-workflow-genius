@@ -14,6 +14,7 @@ import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import CommunityWorkflows from "./pages/CommunityWorkflows";
 import CommunityWorkflowDetail from "./pages/CommunityWorkflowDetail";
+import Settings from "./pages/Settings";
 import { useState, useEffect } from "react";
 
 const queryClient = new QueryClient();
@@ -61,7 +62,7 @@ const App = () => {
             <Route path="/integrations/ai" element={<AIModels />} />
             <Route path="/integrations/apis" element={<APIConnections />} />
             <Route path="/integrations/analytics" element={<Analytics />} />
-            <Route path="/settings" element={<NotFound />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
