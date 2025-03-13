@@ -6,6 +6,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Workflows from "./pages/Workflows";
+import Templates from "./pages/Templates";
+import Executions from "./pages/Executions";
+import AIModels from "./pages/AIModels";
+import APIConnections from "./pages/APIConnections";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 import CommunityWorkflows from "./pages/CommunityWorkflows";
 import CommunityWorkflowDetail from "./pages/CommunityWorkflowDetail";
@@ -51,11 +56,11 @@ const App = () => {
             <Route path="/workflows/new" element={<Workflows />} />
             <Route path="/community" element={<CommunityWorkflows />} />
             <Route path="/community/:id" element={<CommunityWorkflowDetail />} />
-            <Route path="/templates" element={<NotFound />} />
-            <Route path="/executions" element={<NotFound />} />
-            <Route path="/integrations/ai" element={<NotFound />} />
-            <Route path="/integrations/apis" element={<NotFound />} />
-            <Route path="/integrations/analytics" element={<NotFound />} />
+            <Route path="/templates" element={<Templates />} />
+            <Route path="/executions" element={<Executions />} />
+            <Route path="/integrations/ai" element={<AIModels />} />
+            <Route path="/integrations/apis" element={<APIConnections />} />
+            <Route path="/integrations/analytics" element={<Analytics />} />
             <Route path="/settings" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
