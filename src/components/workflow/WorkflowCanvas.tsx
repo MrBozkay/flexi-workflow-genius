@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import {
   ReactFlow,
@@ -169,7 +168,7 @@ export function WorkflowCanvas() {
           gap={24} 
           size={1} 
           color="#94a3b8" 
-          variant="dots" as BackgroundVariant
+          variant={BackgroundVariant.DOTS}
           className="bg-background" 
         />
 

@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Workflows from "./pages/Workflows";
 import NotFound from "./pages/NotFound";
+import CommunityWorkflows from "./pages/CommunityWorkflows";
+import CommunityWorkflowDetail from "./pages/CommunityWorkflowDetail";
 import { useState, useEffect } from "react";
 
 const queryClient = new QueryClient();
@@ -47,6 +49,8 @@ const App = () => {
             <Route path="/workflows" element={<Workflows />} />
             <Route path="/workflows/:id" element={<Workflows />} />
             <Route path="/workflows/new" element={<Workflows />} />
+            <Route path="/community" element={<CommunityWorkflows />} />
+            <Route path="/community/:id" element={<CommunityWorkflowDetail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

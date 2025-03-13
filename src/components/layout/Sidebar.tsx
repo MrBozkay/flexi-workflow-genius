@@ -10,6 +10,7 @@ import {
   FileText, 
   BarChart, 
   Clock,
+  Users,
   Plus 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ export function Sidebar() {
           <nav className="space-y-1">
             <NavItem to="/" icon={<Home className="w-4 h-4" />} label="Dashboard" />
             <NavItem to="/workflows" icon={<GitBranch className="w-4 h-4" />} label="Workflows" />
+            <NavItem to="/community" icon={<Users className="w-4 h-4" />} label="Community" />
             <NavItem to="/templates" icon={<FileText className="w-4 h-4" />} label="Templates" />
             <NavItem to="/executions" icon={<Clock className="w-4 h-4" />} label="Executions" />
           </nav>
