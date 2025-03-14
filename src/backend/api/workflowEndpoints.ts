@@ -1,89 +1,79 @@
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { WorkflowService } from '../services/workflowService.ts'
+import { Request, Response } from 'express';
+import { WorkflowService } from '../services/workflowService';
 
 /**
  * Handle workflow API requests
  */
-export async function handleWorkflowRequest(req: Request): Promise<Response> {
+export async function handleWorkflowRequest(req: Request): Promise<{ status?: number; body?: any }> {
   try {
-    const { method, url } = req
-    const urlObj = new URL(url)
-    const path = urlObj.pathname
-    const pathSegments = path.split('/').filter(Boolean)
+    const { method, path, query, body } = req;
+    const pathSegments = path.split('/').filter(Boolean);
     
     // Get workflow ID from path if available
-    const workflowId = pathSegments.length > 2 ? pathSegments[2] : null
+    const workflowId = pathSegments.length > 2 ? pathSegments[2] : null;
     
     // Handle different HTTP methods
     switch (method) {
       case 'GET':
         if (workflowId) {
           // Get a specific workflow
-          const workflow = await WorkflowService.getWorkflowById(workflowId)
-          return new Response(JSON.stringify(workflow), {
-            headers: { 'Content-Type': 'application/json' },
-          })
+          const workflow = await WorkflowService.getWorkflowById(workflowId);
+          return { body: workflow };
         } else {
           // Get user's workflows
-          const userId = urlObj.searchParams.get('userId')
+          const userId = query.userId as string;
           if (!userId) {
-            return new Response(
-              JSON.stringify({ error: 'User ID is required' }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } }
-            )
+            return { 
+              status: 400, 
+              body: { error: 'User ID is required' }
+            };
           }
-          const workflows = await WorkflowService.getUserWorkflows(userId)
-          return new Response(JSON.stringify(workflows), {
-            headers: { 'Content-Type': 'application/json' },
-          })
+          const workflows = await WorkflowService.getUserWorkflows(userId);
+          return { body: workflows };
         }
         
       case 'POST':
         // Create a new workflow
-        const createData = await req.json()
-        const newWorkflow = await WorkflowService.createWorkflow(createData)
-        return new Response(JSON.stringify(newWorkflow), {
-          status: 201,
-          headers: { 'Content-Type': 'application/json' },
-        })
+        const newWorkflow = await WorkflowService.createWorkflow(body);
+        return { 
+          status: 201, 
+          body: newWorkflow 
+        };
         
       case 'PUT':
         // Update an existing workflow
         if (!workflowId) {
-          return new Response(
-            JSON.stringify({ error: 'Workflow ID is required' }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } }
-          )
+          return { 
+            status: 400, 
+            body: { error: 'Workflow ID is required' }
+          };
         }
-        const updateData = await req.json()
-        const updatedWorkflow = await WorkflowService.updateWorkflow(workflowId, updateData)
-        return new Response(JSON.stringify(updatedWorkflow), {
-          headers: { 'Content-Type': 'application/json' },
-        })
+        const updatedWorkflow = await WorkflowService.updateWorkflow(workflowId, body);
+        return { body: updatedWorkflow };
         
       case 'DELETE':
         // Delete a workflow
         if (!workflowId) {
-          return new Response(
-            JSON.stringify({ error: 'Workflow ID is required' }),
-            { status: 400, headers: { 'Content-Type': 'application/json' } }
-          )
+          return { 
+            status: 400, 
+            body: { error: 'Workflow ID is required' }
+          };
         }
-        await WorkflowService.deleteWorkflow(workflowId)
-        return new Response(null, { status: 204 })
+        await WorkflowService.deleteWorkflow(workflowId);
+        return { status: 204 };
         
       default:
-        return new Response(
-          JSON.stringify({ error: 'Method not allowed' }),
-          { status: 405, headers: { 'Content-Type': 'application/json' } }
-        )
+        return { 
+          status: 405, 
+          body: { error: 'Method not allowed' }
+        };
     }
-  } catch (error) {
-    console.error('Error processing workflow request:', error)
-    return new Response(
-      JSON.stringify({ error: 'Internal Server Error', message: error.message }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    )
+  } catch (error: any) {
+    console.error('Error processing workflow request:', error);
+    return { 
+      status: 500, 
+      body: { error: 'Internal Server Error', message: error.message }
+    };
   }
 }

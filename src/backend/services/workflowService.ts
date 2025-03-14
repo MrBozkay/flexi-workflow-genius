@@ -1,23 +1,24 @@
 
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL') as string
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string
+// Get environment variables
+const supabaseUrl = process.env.VITE_SUPABASE_URL as string;
+const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_ROLE_KEY as string;
 
 // Create a Supabase client with the service role key
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export interface Workflow {
-  id: string
-  name: string
-  description: string
-  nodes: any[]
-  edges: any[]
-  created_at: string
-  updated_at: string
-  user_id: string
-  is_public: boolean
-  tags: string[]
+  id: string;
+  name: string;
+  description: string;
+  nodes: any[];
+  edges: any[];
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  is_public: boolean;
+  tags: string[];
 }
 
 /**
@@ -32,10 +33,10 @@ export class WorkflowService {
       .from('workflows')
       .select('*')
       .eq('user_id', userId)
-      .order('updated_at', { ascending: false })
+      .order('updated_at', { ascending: false });
     
-    if (error) throw error
-    return data || []
+    if (error) throw error;
+    return data || [];
   }
 
   /**
@@ -46,10 +47,10 @@ export class WorkflowService {
       .from('workflows')
       .select('*')
       .eq('id', id)
-      .single()
+      .single();
     
-    if (error) throw error
-    return data
+    if (error) throw error;
+    return data;
   }
 
   /**
@@ -60,10 +61,10 @@ export class WorkflowService {
       .from('workflows')
       .insert(workflow)
       .select()
-      .single()
+      .single();
     
-    if (error) throw error
-    return data
+    if (error) throw error;
+    return data;
   }
 
   /**
@@ -75,10 +76,10 @@ export class WorkflowService {
       .update(workflow)
       .eq('id', id)
       .select()
-      .single()
+      .single();
     
-    if (error) throw error
-    return data
+    if (error) throw error;
+    return data;
   }
 
   /**
@@ -88,8 +89,8 @@ export class WorkflowService {
     const { error } = await supabase
       .from('workflows')
       .delete()
-      .eq('id', id)
+      .eq('id', id);
     
-    if (error) throw error
+    if (error) throw error;
   }
 }
