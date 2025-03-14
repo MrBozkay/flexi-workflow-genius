@@ -1,69 +1,63 @@
-# Welcome to your Lovable project
 
-## Project info
+# FlexiFlow
 
-**URL**: https://lovable.dev/projects/3efe1b2f-8670-4d1b-abe0-cd49ab2edd2e
+AI-powered workflow automation platform.
 
-## How can I edit this code?
+## Project Structure
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/3efe1b2f-8670-4d1b-abe0-cd49ab2edd2e) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+src/
+├── frontend/ # Frontend React application
+│   ├── components/ # UI components
+│   ├── contexts/ # React contexts
+│   ├── hooks/ # Custom React hooks
+│   ├── lib/ # Utility functions and helpers
+│   └── pages/ # Page components
+├── backend/ # Backend services (Supabase Edge Functions)
+│   ├── api/ # API endpoints
+│   └── services/ # Business logic
+└── index.css # Global styles
 ```
 
-**Edit a file directly in GitHub**
+## Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables:
+   - Create a `.env` file in the root directory
+   - Add the following variables:
+     ```
+     VITE_SUPABASE_URL=your_supabase_url
+     VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+     ```
 
-**Use GitHub Codespaces**
+## Development
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Run the development server: `npm run dev`
+- Build for production: `npm run build`
 
-## What technologies are used for this project?
+## Backend (Supabase)
 
-This project is built with .
+The backend uses Supabase for:
+- Authentication
+- Database storage
+- Edge Functions for API logic
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Supabase Setup
 
-## How can I deploy this project?
+1. Create a Supabase project
+2. Run the migrations in `supabase/migrations/` to set up the database schema
+3. Deploy Edge Functions to Supabase
 
-Simply open [Lovable](https://lovable.dev/projects/3efe1b2f-8670-4d1b-abe0-cd49ab2edd2e) and click on Share -> Publish.
+## Features
 
-## I want to use a custom domain - is that possible?
+- User authentication
+- Workflow creation and management
+- Drag-and-drop workflow builder
+- API integrations
+- AI model connections
+- Execution history and analytics
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## License
+
+MIT
