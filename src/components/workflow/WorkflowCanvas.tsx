@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -12,6 +12,7 @@ import {
   Edge,
   MarkerType,
   BackgroundVariant,
+  Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { nodeTypes } from './NodeTypes';
@@ -21,8 +22,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NodePanel } from './NodePanel';
 import { SettingsPanel } from './SettingsPanel';
 
+interface WorkflowCanvasProps {
+  initialNodes?: any[];
+  initialEdges?: any[];
+  onNodesChange?: (nodes: any[]) => void;
+  onEdgesChange?: (edges: any[]) => void;
+}
+
 // Initial demo nodes
-const initialNodes = [
+const demoNodes = [
   {
     id: 'trigger-1',
     type: 'trigger',
@@ -71,7 +79,7 @@ const initialNodes = [
 ];
 
 // Initial demo edges
-const initialEdges = [
+const demoEdges = [
   {
     id: 'e-trigger-ai',
     source: 'trigger-1',
@@ -120,18 +128,50 @@ const initialEdges = [
   },
 ];
 
-export function WorkflowCanvas() {
+export function WorkflowCanvas({ 
+  initialNodes = [], 
+  initialEdges = [],
+  onNodesChange,
+  onEdgesChange
+}: WorkflowCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  
+  // Use demo data if no initial data is provided
+  const startingNodes = initialNodes.length > 0 ? initialNodes : demoNodes;
+  const startingEdges = initialEdges.length > 0 ? initialEdges : demoEdges;
+  
+  const [nodes, setNodes, onNodesChangeInternal] = useNodesState(startingNodes);
+  const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(startingEdges);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   
+  // Call onNodesChange prop when nodes change
+  useEffect(() => {
+    if (onNodesChange) {
+      onNodesChange(nodes);
+    }
+  }, [nodes, onNodesChange]);
+  
+  // Call onEdgesChange prop when edges change
+  useEffect(() => {
+    if (onEdgesChange) {
+      onEdgesChange(edges);
+    }
+  }, [edges, onEdgesChange]);
+  
+  const handleNodesChange = useCallback((changes: any) => {
+    onNodesChangeInternal(changes);
+  }, [onNodesChangeInternal]);
+  
+  const handleEdgesChange = useCallback((changes: any) => {
+    onEdgesChangeInternal(changes);
+  }, [onEdgesChangeInternal]);
+  
   const onConnect = useCallback(
-    (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds) as typeof initialEdges),
+    (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
   );
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: any) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
     setSelectedNode(node.id);
   }, []);
 
@@ -139,13 +179,27 @@ export function WorkflowCanvas() {
     setSelectedNode(null);
   }, []);
 
+  // Update nodes from props when they change
+  useEffect(() => {
+    if (initialNodes.length > 0) {
+      setNodes(initialNodes);
+    }
+  }, [initialNodes, setNodes]);
+  
+  // Update edges from props when they change
+  useEffect(() => {
+    if (initialEdges.length > 0) {
+      setEdges(initialEdges);
+    }
+  }, [initialEdges, setEdges]);
+
   return (
     <div className="w-full h-full" ref={reactFlowWrapper}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         onPaneClick={onPaneClick}

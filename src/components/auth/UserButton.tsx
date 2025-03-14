@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { LogOut, User } from "lucide-react"
+import { LogOut, User, Settings } from "lucide-react"
 import { useAuth } from '@/contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
@@ -29,7 +29,6 @@ export function UserButton() {
   const handleSignOut = async () => {
     await signOut()
     setIsOpen(false)
-    navigate('/')
   }
 
   return (
@@ -47,7 +46,11 @@ export function UserButton() {
           <User className="mr-2 h-4 w-4" />
           <span className="truncate">{user.email}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate('/settings')}>
+        <DropdownMenuItem onClick={() => {
+          navigate('/settings')
+          setIsOpen(false)
+        }}>
+          <Settings className="mr-2 h-4 w-4" />
           Profile Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />

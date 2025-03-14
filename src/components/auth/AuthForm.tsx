@@ -4,47 +4,69 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 import { toast } from "sonner"
 import { Mail, Lock, AlertCircle } from 'lucide-react'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 
 interface AuthFormProps {
   mode: 'signin' | 'signup'
   onSuccess?: () => void
 }
 
+const formSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  fullName: z.string().optional()
+})
+
 export function AuthForm({ mode, onSuccess }: AuthFormProps) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+      fullName: ''
+    }
+  })
+
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true)
     setError(null)
 
     try {
-      // For development purposes, simulate successful authentication
-      // In a real app, this would connect to Supabase
-      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-      
-      localStorage.setItem('mock_user', JSON.stringify({
-        id: 'mock-user-id',
-        email: email,
-        user_metadata: { name: email.split('@')[0] }
-      }));
-      
-      if (mode === 'signin') {
-        toast.success("Signed in successfully")
+      if (mode === 'signup') {
+        const { error } = await supabase.auth.signUp({ 
+          email: values.email, 
+          password: values.password,
+          options: {
+            data: {
+              full_name: values.fullName || ''
+            }
+          }
+        })
+        
+        if (error) throw error
+        
+        toast.success("Account created! Please check your email to confirm your registration")
+        if (onSuccess) onSuccess()
       } else {
-        toast.success("Signup successful! Account created.")
+        const { error } = await supabase.auth.signInWithPassword({ 
+          email: values.email, 
+          password: values.password 
+        })
+        
+        if (error) throw error
+        
+        toast.success("Signed in successfully")
+        window.location.href = '/'
       }
-      
-      // Force reload to trigger auth state change
-      window.location.href = '/';
-      
-      if (onSuccess) onSuccess()
     } catch (err: any) {
       setError(err.message || 'An error occurred')
       toast.error(err.message || 'An error occurred')
@@ -56,24 +78,19 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const handleGoogleLogin = async () => {
     setLoading(true)
     try {
-      // Simulate successful Google sign-in
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
       
-      const mockGoogleUser = {
-        id: 'google-mock-user-id',
-        email: 'google-user@example.com',
-        user_metadata: { name: 'Google User' }
-      };
+      if (error) throw error
       
-      localStorage.setItem('mock_user', JSON.stringify(mockGoogleUser));
-      toast.success("Signed in with Google successfully");
-      
-      // Force reload to trigger auth state change
-      window.location.href = '/';
+      // The user will be redirected to Google for authentication
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google')
       toast.error(err.message || 'Failed to sign in with Google')
-    } finally {
       setLoading(false)
     }
   }
@@ -95,49 +112,76 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
             <p>{error}</p>
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="Enter your email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="pl-10"
-                required
+        
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            {mode === 'signup' && (
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder="Enter your password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="pl-10"
-                required
-                minLength={6}
-              />
-            </div>
-          </div>
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={loading}
-          >
-            {loading 
-              ? mode === 'signin' ? 'Signing in...' : 'Signing up...' 
-              : mode === 'signin' ? 'Sign In' : 'Sign Up'
-            }
-          </Button>
-        </form>
+            )}
+            
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input className="pl-10" placeholder="Enter your email" {...field} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input 
+                        className="pl-10" 
+                        type="password" 
+                        placeholder="Enter your password" 
+                        {...field} 
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={loading}
+            >
+              {loading 
+                ? mode === 'signin' ? 'Signing in...' : 'Signing up...' 
+                : mode === 'signin' ? 'Sign In' : 'Sign Up'
+              }
+            </Button>
+          </form>
+        </Form>
 
         <div className="relative my-4">
           <div className="absolute inset-0 flex items-center">

@@ -16,6 +16,7 @@ import CommunityWorkflows from "./pages/CommunityWorkflows";
 import CommunityWorkflowDetail from "./pages/CommunityWorkflowDetail";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
@@ -62,6 +63,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
       <Route path="/workflows/:id" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
