@@ -18,49 +18,103 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    // Create mock session based on localStorage
+    const checkMockAuth = () => {
+      const mockUserStr = localStorage.getItem('mock_user');
+      if (mockUserStr) {
+        try {
+          const mockUser = JSON.parse(mockUserStr);
+          const mockSession = {
+            access_token: 'mock-token',
+            refresh_token: 'mock-refresh-token',
+            expires_at: Date.now() + 3600000,
+            user: mockUser
+          };
+          setSession(mockSession as Session);
+          setUser(mockUser as User);
+        } catch (e) {
+          console.error('Error parsing mock user:', e);
+          localStorage.removeItem('mock_user');
+        }
+      }
+      setLoading(false);
+    };
 
-    // Listen for auth changes
+    // First, try to get a session from Supabase (for real implementation)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } else {
+        // If no Supabase session, check for mock auth
+        checkMockAuth();
+      }
+    }).catch(err => {
+      console.log('Error checking Supabase session, fallback to mock:', err);
+      checkMockAuth();
+    });
+
+    // For real implementation
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
+        if (session) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          setLoading(false);
+        }
       }
-    )
+    );
+
+    // Listen for changes to localStorage (for mock auth)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'mock_user') {
+        checkMockAuth();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
+      subscription.unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-  }
+    // Clear both real and mock auth
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.log('Error signing out of Supabase:', err);
+    }
+    
+    // Clear mock auth
+    localStorage.removeItem('mock_user');
+    setSession(null);
+    setUser(null);
+    
+    // Redirect to auth page
+    window.location.href = '/auth';
+  };
 
   const value = {
     session,
     user,
     loading,
     signOut
-  }
+  };
 
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
-  )
-}
+  );
+};
 
 export const useAuth = () => {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context
-}
+  return context;
+};

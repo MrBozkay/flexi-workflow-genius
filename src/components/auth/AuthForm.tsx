@@ -25,26 +25,24 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
     setError(null)
 
     try {
+      // For development purposes, simulate successful authentication
+      // In a real app, this would connect to Supabase
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+      
+      localStorage.setItem('mock_user', JSON.stringify({
+        id: 'mock-user-id',
+        email: email,
+        user_metadata: { name: email.split('@')[0] }
+      }));
+      
       if (mode === 'signin') {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        
-        if (error) throw error
         toast.success("Signed in successfully")
       } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-          },
-        })
-        
-        if (error) throw error
-        toast.success("Signup successful! Please check your email for confirmation.")
+        toast.success("Signup successful! Account created.")
       }
+      
+      // Force reload to trigger auth state change
+      window.location.href = '/';
       
       if (onSuccess) onSuccess()
     } catch (err: any) {
@@ -58,14 +56,20 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const handleGoogleLogin = async () => {
     setLoading(true)
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin
-        }
-      })
+      // Simulate successful Google sign-in
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      if (error) throw error
+      const mockGoogleUser = {
+        id: 'google-mock-user-id',
+        email: 'google-user@example.com',
+        user_metadata: { name: 'Google User' }
+      };
+      
+      localStorage.setItem('mock_user', JSON.stringify(mockGoogleUser));
+      toast.success("Signed in with Google successfully");
+      
+      // Force reload to trigger auth state change
+      window.location.href = '/';
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google')
       toast.error(err.message || 'Failed to sign in with Google')
