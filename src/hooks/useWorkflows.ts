@@ -3,13 +3,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
+import { Json } from '@/integrations/supabase/types'
 
+// Define the Workflow type that matches our database structure
 export interface Workflow {
   id: string
   name: string
   description: string | null
-  nodes: any[]
-  edges: any[]
+  nodes: any[] // Using any[] to match expected type
+  edges: any[] // Using any[] to match expected type
   created_at: string
   updated_at: string
   user_id: string
@@ -17,94 +19,103 @@ export interface Workflow {
   tags: string[]
 }
 
+// Helper function to convert Supabase workflow data to our Workflow type
+const convertSupabaseWorkflow = (data: any): Workflow => {
+  return {
+    ...data,
+    // Parse JSON strings if they come as strings
+    nodes: typeof data.nodes === 'string' ? JSON.parse(data.nodes) : data.nodes,
+    edges: typeof data.edges === 'string' ? JSON.parse(data.edges) : data.edges,
+  }
+}
+
 export const useWorkflows = () => {
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
-  // Fetch all workflows for the current user
-  const getWorkflows = async (): Promise<Workflow[]> => {
+  const fetchWorkflows = async (): Promise<Workflow[]> => {
     if (!user) return []
-    
+
     const { data, error } = await supabase
       .from('workflows')
       .select('*')
       .eq('user_id', user.id)
       .order('updated_at', { ascending: false })
-    
+
     if (error) {
       console.error('Error fetching workflows:', error)
       throw error
     }
-    
-    return data || []
+
+    // Convert all workflow data to our Workflow type
+    return data.map(convertSupabaseWorkflow)
   }
 
-  // Get a specific workflow by ID
-  const getWorkflowById = async (id: string): Promise<Workflow | null> => {
+  const fetchWorkflowById = async (id: string): Promise<Workflow> => {
     const { data, error } = await supabase
       .from('workflows')
       .select('*')
       .eq('id', id)
       .single()
-    
+
     if (error) {
-      if (error.code !== 'PGRST116') { // Not found error
-        console.error('Error fetching workflow:', error)
-        throw error
-      }
-      return null
+      console.error('Error fetching workflow:', error)
+      throw error
     }
-    
-    return data
+
+    return convertSupabaseWorkflow(data)
   }
 
-  // Create a new workflow
-  const createWorkflow = async (workflow: Partial<Workflow>): Promise<Workflow> => {
+  const createWorkflow = async (workflow: Omit<Workflow, 'id' | 'created_at' | 'updated_at'>): Promise<Workflow> => {
     if (!user) throw new Error('User not authenticated')
-    
-    const newWorkflow = {
+
+    // Ensure required fields are present
+    const workflowData = {
       ...workflow,
+      name: workflow.name || 'Untitled Workflow', // Ensure name is always set
       user_id: user.id
     }
-    
+
     const { data, error } = await supabase
       .from('workflows')
-      .insert(newWorkflow)
+      .insert(workflowData)
       .select()
       .single()
-    
+
     if (error) {
       console.error('Error creating workflow:', error)
       throw error
     }
-    
-    return data
+
+    return convertSupabaseWorkflow(data)
   }
 
-  // Update an existing workflow
-  const updateWorkflow = async ({ id, ...updates }: Partial<Workflow> & { id: string }): Promise<Workflow> => {
+  const updateWorkflow = async (workflow: Partial<Workflow> & { id: string }): Promise<Workflow> => {
+    if (!user) throw new Error('User not authenticated')
+
     const { data, error } = await supabase
       .from('workflows')
-      .update(updates)
-      .eq('id', id)
+      .update(workflow)
+      .eq('id', workflow.id)
       .select()
       .single()
-    
+
     if (error) {
       console.error('Error updating workflow:', error)
       throw error
     }
-    
-    return data
+
+    return convertSupabaseWorkflow(data)
   }
 
-  // Delete a workflow
   const deleteWorkflow = async (id: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated')
+
     const { error } = await supabase
       .from('workflows')
       .delete()
       .eq('id', id)
-    
+
     if (error) {
       console.error('Error deleting workflow:', error)
       throw error
@@ -114,13 +125,13 @@ export const useWorkflows = () => {
   // React Query hooks
   const workflowsQuery = useQuery({
     queryKey: ['workflows', user?.id],
-    queryFn: getWorkflows,
+    queryFn: fetchWorkflows,
     enabled: !!user
   })
 
   const workflowByIdQuery = (id: string) => useQuery({
     queryKey: ['workflow', id],
-    queryFn: () => getWorkflowById(id),
+    queryFn: () => fetchWorkflowById(id),
     enabled: !!id && !!user
   })
 

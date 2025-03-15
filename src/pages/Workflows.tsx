@@ -1,319 +1,175 @@
-
-import React, { useState, useEffect } from 'react';
-import { AppLayout } from '@/components/layout/AppLayout';
-import { WorkflowCanvas } from '@/components/workflow/WorkflowCanvas';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Share, Save, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { useParams, useNavigate } from 'react-router-dom';
-import { toast } from "sonner";
-import { useWorkflows, Workflow } from '@/hooks/useWorkflows';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useWorkflows, Workflow } from '@/hooks/useWorkflows'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
+import { AppLayout } from '@/components/layout/AppLayout'
+import { WorkflowCanvas } from '@/components/workflow/WorkflowCanvas'
+import { SettingsPanel } from '@/components/workflow/SettingsPanel'
+import { useAuth } from '@/contexts/AuthContext'
+import { toast } from 'sonner'
 
 const Workflows = () => {
-  const [activeTab, setActiveTab] = useState<"editor" | "executions">("editor");
-  const [workflowName, setWorkflowName] = useState("New Workflow");
-  const [workflowDescription, setWorkflowDescription] = useState("");
-  const [isActive, setIsActive] = useState(false);
-  const [isNewWorkflow, setIsNewWorkflow] = useState(false);
-  const [nodes, setNodes] = useState<any[]>([]);
-  const [edges, setEdges] = useState<any[]>([]);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [newWorkflowName, setNewWorkflowName] = useState("");
-  const [newWorkflowDescription, setNewWorkflowDescription] = useState("");
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const { workflows, isLoading, createWorkflow, getWorkflowById, updateWorkflow } = useWorkflows()
   
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { 
-    workflows, 
-    isLoading, 
-    getWorkflowById, 
-    createWorkflow, 
-    updateWorkflow, 
-    deleteWorkflow 
-  } = useWorkflows();
-
-  // Get workflow data if ID is provided
-  const { data: currentWorkflow, isLoading: isWorkflowLoading } = getWorkflowById(id || '');
-
+  const [currentWorkflow, setCurrentWorkflow] = useState<Workflow | null>(null)
+  const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false)
+  
+  const workflowQuery = id ? getWorkflowById(id) : null
+  const selectedWorkflow = workflowQuery?.data || null
+  
+  // Set the current workflow when the selected workflow changes
   useEffect(() => {
-    if (id && currentWorkflow) {
-      setWorkflowName(currentWorkflow.name);
-      setWorkflowDescription(currentWorkflow.description || '');
-      setNodes(currentWorkflow.nodes || []);
-      setEdges(currentWorkflow.edges || []);
-      setIsActive(currentWorkflow.is_public);
-      setIsNewWorkflow(false);
-    } else if (!id) {
-      // New workflow
-      setWorkflowName("New Workflow");
-      setWorkflowDescription("");
-      setNodes([]);
-      setEdges([]);
-      setIsActive(false);
-      setIsNewWorkflow(true);
+    if (selectedWorkflow) {
+      setCurrentWorkflow(selectedWorkflow)
+    } else if (id && !workflowQuery?.isLoading && !workflowQuery?.data) {
+      // If we have an ID but no workflow data and we're not loading, it means the workflow doesn't exist
+      toast.error('Workflow not found')
+      navigate('/workflows')
     }
-  }, [id, currentWorkflow]);
-
-  const handleSave = async () => {
-    if (id && currentWorkflow) {
-      // Update existing workflow
-      await updateWorkflow({
-        id,
-        name: workflowName,
-        description: workflowDescription,
-        nodes,
-        edges,
-        is_public: isActive
-      });
-    } else {
-      // Create new workflow
-      const newWorkflow = await createWorkflow({
-        name: workflowName,
-        description: workflowDescription,
-        nodes,
-        edges,
-        is_public: isActive,
-        tags: []
-      }) as Workflow;
-      
-      // Navigate to the new workflow
-      navigate(`/workflows/${newWorkflow.id}`);
-      setIsNewWorkflow(false);
-    }
-  };
-
-  const handleShare = () => {
-    // Implementation for workflow sharing will go here
-    toast.success("Sharing options opened");
-  };
-
-  const handleActiveToggle = (checked: boolean) => {
-    setIsActive(checked);
-    if (id) {
-      updateWorkflow({
-        id,
-        is_public: checked
-      });
-    }
-  };
-
-  const handleCreateWorkflow = () => {
-    createWorkflow({
-      name: newWorkflowName,
-      description: newWorkflowDescription,
+  }, [selectedWorkflow, id, workflowQuery?.isLoading, navigate])
+  
+  // Handle creating a new workflow
+  const handleCreateWorkflow = async () => {
+    if (!user) return
+    
+    // Create a new workflow with default values
+    const newWorkflow = {
+      name: 'New Workflow',
+      description: 'My new workflow',
       nodes: [],
       edges: [],
+      user_id: user.id,
       is_public: false,
       tags: []
-    });
-    setIsCreateDialogOpen(false);
-    setNewWorkflowName("");
-    setNewWorkflowDescription("");
-  };
-
-  const handleDeleteWorkflow = async () => {
-    if (id) {
-      await deleteWorkflow(id);
-      navigate('/workflows');
-      setIsDeleteDialogOpen(false);
     }
-  };
-
-  const handleNodesChange = (newNodes: any[]) => {
-    setNodes(newNodes);
-  };
-
-  const handleEdgesChange = (newEdges: any[]) => {
-    setEdges(newEdges);
-  };
-
-  if (isLoading || isWorkflowLoading) {
+    
+    // The createWorkflow function returns void because it's a mutation function
+    // from React Query, so we can't directly assign its return value
+    createWorkflow(newWorkflow, {
+      onSuccess: (createdWorkflow: Workflow) => {
+        // Navigate to the new workflow
+        navigate(`/workflows/${createdWorkflow.id}`)
+      }
+    })
+  }
+  
+  // Handle saving workflow changes
+  const handleSaveWorkflow = (workflow: Partial<Workflow> & { id: string }) => {
+    updateWorkflow(workflow)
+  }
+  
+  // If we're on the /workflows route without an ID, show a list of workflows
+  if (!id) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center h-full">
-          <div className="flex flex-col items-center">
-            <div className="w-16 h-16 relative">
-              <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin"></div>
-              <div className="absolute inset-4 rounded-full bg-primary/30"></div>
-            </div>
-            <p className="mt-4 text-lg font-medium">Loading workflow...</p>
-          </div>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  return (
-    <AppLayout>
-      <div className="flex flex-col h-full w-full overflow-hidden">
-        {/* Workflow navbar */}
-        <div className="border-b border-border bg-card py-2 px-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center">
-                <input
-                  type="text"
-                  value={workflowName}
-                  onChange={(e) => setWorkflowName(e.target.value)}
-                  className="px-1 py-0.5 text-lg font-medium bg-transparent border-0 border-b border-transparent hover:border-primary focus:border-primary focus:ring-0 focus:outline-none"
-                />
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="px-1.5 hover:bg-transparent"
-                    >
-                      <Plus className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground ml-1">Add tag</span>
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add Tags</DialogTitle>
-                      <DialogDescription>
-                        Add tags to help organize your workflows.
-                      </DialogDescription>
-                    </DialogHeader>
-                    {/* Tag selection UI will go here */}
-                    <div className="py-4">
-                      <p className="text-sm text-muted-foreground">Tag functionality coming soon</p>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Private</span>
-                <Switch checked={isActive} onCheckedChange={handleActiveToggle} />
-                <span className="text-sm text-muted-foreground">Public</span>
-              </div>
-              
-              {!isNewWorkflow && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="gap-1"
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span>Delete</span>
-                </Button>
-              )}
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-1"
-                onClick={handleShare}
-              >
-                <Share className="h-4 w-4" />
-                <span>Share</span>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-1"
-                onClick={handleSave}
-              >
-                <Save className="h-4 w-4" />
-                <span>Save</span>
-              </Button>
-            </div>
+        <div className="container mx-auto py-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">My Workflows</h1>
+            <Button onClick={handleCreateWorkflow}>
+              <Plus className="mr-2 h-4 w-4" /> Create Workflow
+            </Button>
           </div>
           
-          {/* Editor/Executions tabs */}
-          <div className="mt-3">
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "editor" | "executions")} className="w-fit">
-              <TabsList>
-                <TabsTrigger value="editor">Editor</TabsTrigger>
-                <TabsTrigger value="executions">Executions</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        </div>
-        
-        {/* Workflow content */}
-        <div className="flex-1 overflow-hidden">
-          {activeTab === "editor" ? (
-            <WorkflowCanvas 
-              initialNodes={nodes} 
-              initialEdges={edges} 
-              onNodesChange={handleNodesChange} 
-              onEdgesChange={handleEdgesChange} 
-            />
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            </div>
+          ) : workflows.length === 0 ? (
+            <div className="text-center py-16 bg-muted rounded-lg">
+              <h3 className="text-lg font-medium mb-2">No workflows yet</h3>
+              <p className="text-muted-foreground mb-4">Create your first workflow to get started</p>
+              <Button onClick={handleCreateWorkflow}>
+                <Plus className="mr-2 h-4 w-4" /> Create Workflow
+              </Button>
+            </div>
           ) : (
-            <div className="p-6">
-              <h2 className="text-lg font-medium">Executions History</h2>
-              <p className="text-muted-foreground">No executions found for this workflow.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {workflows.map((workflow) => (
+                <div
+                  key={workflow.id}
+                  className="border rounded-lg p-4 cursor-pointer hover:border-primary transition-colors"
+                  onClick={() => navigate(`/workflows/${workflow.id}`)}
+                >
+                  <h3 className="font-medium truncate">{workflow.name}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 h-10">{workflow.description}</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(workflow.updated_at).toLocaleDateString()}
+                    </div>
+                    <div className="flex space-x-1">
+                      {workflow.tags.slice(0, 3).map((tag, index) => (
+                        <span key={index} className="px-2 py-1 text-xs bg-secondary rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      </div>
-
-      {/* Create Workflow Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Workflow</DialogTitle>
-            <DialogDescription>
-              Enter the details for your new workflow.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="workflow-name">Workflow Name</Label>
-              <Input 
-                id="workflow-name" 
-                value={newWorkflowName} 
-                onChange={(e) => setNewWorkflowName(e.target.value)} 
-                placeholder="My Workflow"
+      </AppLayout>
+    )
+  }
+  
+  // Otherwise, show the workflow editor
+  return (
+    <AppLayout>
+      <div className="h-[calc(100vh-4rem)] flex flex-col">
+        {currentWorkflow ? (
+          <>
+            <div className="border-b bg-background z-10">
+              <div className="container mx-auto p-4 flex justify-between items-center">
+                <div>
+                  <h1 className="text-xl font-semibold">{currentWorkflow.name}</h1>
+                  <p className="text-sm text-muted-foreground">{currentWorkflow.description}</p>
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setIsSettingsPanelOpen(!isSettingsPanelOpen)}
+                  >
+                    Settings
+                  </Button>
+                  <Button onClick={() => handleSaveWorkflow(currentWorkflow)}>Save</Button>
+                </div>
+              </div>
+            </div>
+            <div className="flex-1 relative overflow-hidden">
+              <WorkflowCanvas 
+                workflow={currentWorkflow} 
+                onWorkflowChange={setCurrentWorkflow} 
+              />
+              <SettingsPanel 
+                isOpen={isSettingsPanelOpen} 
+                onClose={() => setIsSettingsPanelOpen(false)}
+                workflow={currentWorkflow}
+                onWorkflowChange={setCurrentWorkflow}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="workflow-description">Description (optional)</Label>
-              <Textarea 
-                id="workflow-description" 
-                value={newWorkflowDescription} 
-                onChange={(e) => setNewWorkflowDescription(e.target.value)} 
-                placeholder="Describe what this workflow does"
-              />
+          </>
+        ) : workflowQuery?.isLoading ? (
+          <div className="flex-1 flex justify-center items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <div className="flex-1 flex justify-center items-center">
+            <div className="text-center">
+              <h3 className="text-lg font-medium mb-2">Workflow not found</h3>
+              <Button onClick={() => navigate('/workflows')}>
+                Back to Workflows
+              </Button>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreateWorkflow} disabled={!newWorkflowName.trim()}>Create</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Workflow Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Workflow</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this workflow? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDeleteWorkflow}>Delete</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+      </div>
     </AppLayout>
-  );
-};
+  )
+}
 
-export default Workflows;
+export default Workflows
