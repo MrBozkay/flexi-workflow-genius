@@ -21,8 +21,11 @@ import { Plus, Save, Play, ZoomIn, ZoomOut } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NodePanel } from './NodePanel';
 import { SettingsPanel } from './SettingsPanel';
+import { Workflow } from '@/hooks/useWorkflows';
 
-interface WorkflowCanvasProps {
+export interface WorkflowCanvasProps {
+  workflow: Workflow;
+  onWorkflowChange: React.Dispatch<React.SetStateAction<Workflow>>;
   initialNodes?: any[];
   initialEdges?: any[];
   onNodesChange?: (nodes: any[]) => void;
@@ -129,6 +132,8 @@ const demoEdges = [
 ];
 
 export function WorkflowCanvas({ 
+  workflow,
+  onWorkflowChange,
   initialNodes = [], 
   initialEdges = [],
   onNodesChange,
@@ -136,13 +141,26 @@ export function WorkflowCanvas({
 }: WorkflowCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   
-  // Use demo data if no initial data is provided
-  const startingNodes = initialNodes.length > 0 ? initialNodes : demoNodes;
-  const startingEdges = initialEdges.length > 0 ? initialEdges : demoEdges;
+  // Use workflow data instead of demo data
+  const startingNodes = workflow?.nodes?.length > 0 ? workflow.nodes : 
+                        initialNodes.length > 0 ? initialNodes : demoNodes;
+  const startingEdges = workflow?.edges?.length > 0 ? workflow.edges : 
+                        initialEdges.length > 0 ? initialEdges : demoEdges;
   
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState(startingNodes);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(startingEdges);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  
+  // Update workflow when nodes or edges change
+  useEffect(() => {
+    if (workflow && onWorkflowChange) {
+      onWorkflowChange({
+        ...workflow,
+        nodes,
+        edges
+      });
+    }
+  }, [nodes, edges, workflow, onWorkflowChange]);
   
   // Call onNodesChange prop when nodes change
   useEffect(() => {
@@ -157,6 +175,16 @@ export function WorkflowCanvas({
       onEdgesChange(edges);
     }
   }, [edges, onEdgesChange]);
+  
+  // Update nodes and edges when workflow changes from outside
+  useEffect(() => {
+    if (workflow?.nodes && workflow.nodes.length > 0) {
+      setNodes(workflow.nodes);
+    }
+    if (workflow?.edges && workflow.edges.length > 0) {
+      setEdges(workflow.edges);
+    }
+  }, [workflow?.id, setNodes, setEdges]);
   
   const handleNodesChange = useCallback((changes: any) => {
     onNodesChangeInternal(changes);
@@ -178,20 +206,6 @@ export function WorkflowCanvas({
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
   }, []);
-
-  // Update nodes from props when they change
-  useEffect(() => {
-    if (initialNodes.length > 0) {
-      setNodes(initialNodes);
-    }
-  }, [initialNodes, setNodes]);
-  
-  // Update edges from props when they change
-  useEffect(() => {
-    if (initialEdges.length > 0) {
-      setEdges(initialEdges);
-    }
-  }, [initialEdges, setEdges]);
 
   return (
     <div className="w-full h-full" ref={reactFlowWrapper}>
