@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -30,6 +30,38 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const [showResendButton, setShowResendButton] = useState(false)
   const [emailForResend, setEmailForResend] = useState('')
   const navigate = useNavigate()
+
+  // Check for OAuth redirects
+  useEffect(() => {
+    const handleHashParams = async () => {
+      const hashParams = window.location.hash
+      if (hashParams.includes('access_token') || hashParams.includes('error')) {
+        console.log("Detected OAuth redirect with hash params:", hashParams)
+        
+        // Let Supabase process the hash fragment
+        const { data, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error("Error getting session after OAuth redirect:", error)
+          toast.error("Authentication failed: " + error.message)
+          return
+        }
+        
+        if (data.session) {
+          console.log("Successfully authenticated after OAuth redirect")
+          toast.success("Successfully logged in")
+          // Clear the hash
+          window.history.replaceState(null, document.title, window.location.pathname)
+          // Redirect to home with a slight delay
+          setTimeout(() => {
+            navigate('/', { replace: true })
+          }, 750)
+        }
+      }
+    }
+    
+    handleHashParams()
+  }, [navigate])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -105,7 +137,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: window.location.origin + '/auth/callback'
         }
       })
       
