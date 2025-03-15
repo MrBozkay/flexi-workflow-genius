@@ -46,8 +46,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        console.log("Auth state changed, event:", _event)
+      (event, session) => {
+        console.log("Auth state changed, event:", event)
+        
+        if (event === 'SIGNED_IN') {
+          console.log("User signed in:", session?.user?.email)
+          toast.success("Signed in successfully")
+        } else if (event === 'SIGNED_OUT') {
+          console.log("User signed out")
+        }
+        
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)

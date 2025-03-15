@@ -11,15 +11,17 @@ const Auth = () => {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
 
-  // Redirect if user is already logged in
   useEffect(() => {
+    // Extra safety check - if user is already authenticated, redirect to home
     if (!loading && user) {
+      console.log("Auth page - User already logged in, redirecting to home")
       navigate('/', { replace: true })
     }
   }, [user, loading, navigate])
 
-  // If the initial check detects a user, show a immediate redirect
+  // Immediate redirect if user is already logged in before component fully mounts
   if (!loading && user) {
+    console.log("Auth page - Immediate redirect to home")
     return <Navigate to="/" replace />
   }
 

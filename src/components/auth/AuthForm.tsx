@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -62,6 +61,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         toast.success("Account created! Please check your email to confirm your registration")
         if (onSuccess) onSuccess()
       } else {
+        console.log("Attempting to sign in with:", values.email)
         const { error, data } = await supabase.auth.signInWithPassword({ 
           email: values.email, 
           password: values.password 
@@ -77,11 +77,16 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
           throw error
         }
         
+        console.log("Sign in successful, user:", data.user?.email)
         toast.success("Signed in successfully")
-        // Instead of using window.location.href, use navigate
-        navigate('/')
+        
+        // Use navigate with replace to prevent back button issues
+        setTimeout(() => {
+          navigate('/', { replace: true })
+        }, 500)
       }
     } catch (err: any) {
+      console.error("Authentication error:", err.message)
       setError(err.message || 'An error occurred')
       toast.error(err.message || 'An error occurred')
     } finally {
