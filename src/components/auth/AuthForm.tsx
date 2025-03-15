@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -81,9 +82,13 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         toast.success("Signed in successfully")
         
         // Use navigate with replace to prevent back button issues
+        console.log("Redirecting to home after login success")
+        
+        // Add a slight delay to let the auth state sync
         setTimeout(() => {
+          console.log("Executing delayed navigation to home")
           navigate('/', { replace: true })
-        }, 500)
+        }, 750)
       }
     } catch (err: any) {
       console.error("Authentication error:", err.message)

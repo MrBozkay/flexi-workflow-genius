@@ -27,6 +27,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       try {
         const { data: { session } } = await supabase.auth.getSession()
+        console.log("Initial session check:", session ? "Session found" : "No session found")
+        
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -54,6 +56,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           toast.success("Signed in successfully")
         } else if (event === 'SIGNED_OUT') {
           console.log("User signed out")
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log("Token refreshed for user:", session?.user?.email)
         }
         
         setSession(session)
@@ -63,12 +67,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     )
 
     return () => {
+      console.log("Cleaning up auth subscription")
       subscription.unsubscribe()
     }
   }, [])
 
   const signOut = async () => {
     try {
+      console.log("Signing out user")
       await supabase.auth.signOut()
       toast.success("Signed out successfully")
       // Use window.location to ensure a full refresh and clean state

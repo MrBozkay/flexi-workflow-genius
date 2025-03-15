@@ -1,9 +1,6 @@
 
-import { createClient } from '@supabase/supabase-js';
+// This file is deprecated - use the client from integrations/supabase instead
+// Re-export the client to maintain backward compatibility
+import { supabase } from '@/integrations/supabase/client'
 
-// Create a temporary mock client for development
-// This will be replaced with real credentials when connecting to Supabase
-const supabaseUrl = 'https://example.supabase.co';
-const supabaseKey = 'mock-key-for-development';
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export { supabase }

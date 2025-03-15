@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "@/frontend/pages/Index";
+import Index from "@/pages/Index";
 import Workflows from "@/pages/Workflows";
 import Templates from "@/pages/Templates";
 import Executions from "@/pages/Executions";
@@ -15,9 +15,10 @@ import NotFound from "@/pages/NotFound";
 import CommunityWorkflows from "@/pages/CommunityWorkflows";
 import CommunityWorkflowDetail from "@/pages/CommunityWorkflowDetail";
 import Settings from "@/pages/Settings";
-import Auth from "@/frontend/pages/Auth";
+import Auth from "@/pages/Auth";
+import AuthCallback from "@/pages/AuthCallback";
 import { useState, useEffect } from "react";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -25,9 +26,24 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
-  if (loading) return null;
+  console.log("Frontend ProtectedRoute - User:", user?.email, "Loading:", loading);
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 relative">
+            <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin"></div>
+            <div className="absolute inset-4 rounded-full bg-primary/30"></div>
+          </div>
+          <p className="mt-4 text-lg font-medium text-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   if (!user) {
+    console.log("Frontend - No user found, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
   
@@ -62,6 +78,7 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
       <Route path="/workflows" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />
       <Route path="/workflows/:id" element={<ProtectedRoute><Workflows /></ProtectedRoute>} />

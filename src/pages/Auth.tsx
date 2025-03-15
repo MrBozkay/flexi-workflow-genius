@@ -11,6 +11,8 @@ const Auth = () => {
   const { user, loading } = useAuth()
   const navigate = useNavigate()
 
+  console.log("Auth page - Initial state - User:", user?.email, "Loading:", loading)
+
   useEffect(() => {
     // Extra safety check - if user is already authenticated, redirect to home
     if (!loading && user) {
