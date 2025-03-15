@@ -1,16 +1,24 @@
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { AuthForm } from '@/components/auth/AuthForm'
 import { useAuth } from '@/contexts/AuthContext'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { GitBranch, InfoIcon } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const Auth = () => {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const { user, loading } = useAuth()
+  const navigate = useNavigate()
 
   // Redirect if user is already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/', { replace: true })
+    }
+  }, [user, loading, navigate])
+
+  // If the initial check detects a user, show a immediate redirect
   if (!loading && user) {
     return <Navigate to="/" replace />
   }

@@ -19,20 +19,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log("Auth context initializing")
+    
+    // Get initial session
+    const initializeAuth = async () => {
+      setLoading(true)
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        setSession(session)
+        setUser(session?.user ?? null)
+        
+        if (session?.user) {
+          console.log("Logged in user detected:", session.user.email)
+        } else {
+          console.log("No logged in user detected")
+        }
+      } catch (error) {
+        console.error("Error getting session:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    initializeAuth()
+    
+    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        console.log("Auth state changed, event:", _event)
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)
       }
     )
-
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
 
     return () => {
       subscription.unsubscribe()
@@ -43,7 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       await supabase.auth.signOut()
       toast.success("Signed out successfully")
-      // Redirect to auth page
+      // Use window.location to ensure a full refresh and clean state
       window.location.href = '/auth'
     } catch (error) {
       console.error("Error signing out:", error)

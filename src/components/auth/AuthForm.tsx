@@ -11,6 +11,7 @@ import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { useNavigate } from 'react-router-dom'
 
 interface AuthFormProps {
   mode: 'signin' | 'signup'
@@ -28,6 +29,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const [error, setError] = useState<string | null>(null)
   const [showResendButton, setShowResendButton] = useState(false)
   const [emailForResend, setEmailForResend] = useState('')
+  const navigate = useNavigate()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -60,7 +62,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         toast.success("Account created! Please check your email to confirm your registration")
         if (onSuccess) onSuccess()
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ 
+        const { error, data } = await supabase.auth.signInWithPassword({ 
           email: values.email, 
           password: values.password 
         })
@@ -76,7 +78,8 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         }
         
         toast.success("Signed in successfully")
-        window.location.href = '/'
+        // Instead of using window.location.href, use navigate
+        navigate('/')
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred')
