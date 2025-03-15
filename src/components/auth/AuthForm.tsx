@@ -26,6 +26,8 @@ const formSchema = z.object({
 export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showResendButton, setShowResendButton] = useState(false)
+  const [emailForResend, setEmailForResend] = useState('')
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,6 +41,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setLoading(true)
     setError(null)
+    setShowResendButton(false)
 
     try {
       if (mode === 'signup') {
@@ -62,7 +65,15 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
           password: values.password 
         })
         
-        if (error) throw error
+        if (error) {
+          // Handle "Email not confirmed" error specifically
+          if (error.message.includes('Email not confirmed')) {
+            setEmailForResend(values.email)
+            setShowResendButton(true)
+            throw new Error('Email not confirmed. Please check your inbox or resend the confirmation email.')
+          }
+          throw error
+        }
         
         toast.success("Signed in successfully")
         window.location.href = '/'
@@ -95,6 +106,25 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
     }
   }
 
+  const handleResendConfirmation = async () => {
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: emailForResend,
+      })
+
+      if (error) throw error
+
+      toast.success('Confirmation email resent. Please check your inbox.')
+      setShowResendButton(false)
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to resend confirmation email')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -110,6 +140,19 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
           <div className="bg-destructive/15 p-3 rounded-md flex items-center gap-2 mb-4 text-sm text-destructive">
             <AlertCircle className="h-4 w-4" />
             <p>{error}</p>
+          </div>
+        )}
+        
+        {showResendButton && (
+          <div className="mb-4">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={handleResendConfirmation}
+              disabled={loading}
+            >
+              Resend Confirmation Email
+            </Button>
           </div>
         )}
         
@@ -229,6 +272,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
             className="p-0 h-auto font-normal" 
             onClick={() => {
               setError(null);
+              setShowResendButton(false);
               if(onSuccess) onSuccess();
             }}
           >

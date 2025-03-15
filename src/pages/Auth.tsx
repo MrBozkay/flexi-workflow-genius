@@ -3,7 +3,8 @@ import React, { useState } from 'react'
 import { AuthForm } from '@/components/auth/AuthForm'
 import { useAuth } from '@/contexts/AuthContext'
 import { Navigate } from 'react-router-dom'
-import { GitBranch } from 'lucide-react'
+import { GitBranch, InfoIcon } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const Auth = () => {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -23,6 +24,15 @@ const Auth = () => {
         <h1 className="text-3xl font-bold">FlexiFlow</h1>
         <p className="text-muted-foreground mt-1">AI-powered workflow automation</p>
       </div>
+      
+      {mode === 'signup' && (
+        <Alert className="mb-4 max-w-md">
+          <InfoIcon className="h-4 w-4" />
+          <AlertDescription>
+            After signing up, you'll need to confirm your email address before you can log in.
+          </AlertDescription>
+        </Alert>
+      )}
       
       <AuthForm 
         mode={mode} 
