@@ -31,12 +31,13 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const [emailForResend, setEmailForResend] = useState('')
   const navigate = useNavigate()
 
-  // Check for OAuth redirects
+  // Check for OAuth redirects on page load
   useEffect(() => {
     const handleHashParams = async () => {
       const hashParams = window.location.hash
-      if (hashParams.includes('access_token') || hashParams.includes('error')) {
-        console.log("Detected OAuth redirect with hash params:", hashParams)
+      if (hashParams && (hashParams.includes('access_token') || hashParams.includes('error'))) {
+        console.log("Auth form - Detected OAuth redirect hash params:", hashParams)
+        console.log("Current URL:", window.location.href)
         
         // Let Supabase process the hash fragment
         const { data, error } = await supabase.auth.getSession()
@@ -48,14 +49,17 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         }
         
         if (data.session) {
-          console.log("Successfully authenticated after OAuth redirect")
+          console.log("Successfully authenticated after OAuth redirect, session:", data.session.user.email)
           toast.success("Successfully logged in")
+          
           // Clear the hash
           window.history.replaceState(null, document.title, window.location.pathname)
+          
           // Redirect to home with a slight delay
           setTimeout(() => {
+            console.log("Navigating to home page after successful OAuth login")
             navigate('/', { replace: true })
-          }, 750)
+          }, 1000)
         }
       }
     }
@@ -134,17 +138,25 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const handleGoogleLogin = async () => {
     setLoading(true)
     try {
+      console.log("Initiating Google login...")
+      
+      // Explicitly use the full URL for the callback
+      const callbackUrl = `${window.location.origin}/auth/callback`
+      console.log("Using callback URL:", callbackUrl)
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/auth/callback'
+          redirectTo: callbackUrl
         }
       })
       
       if (error) throw error
       
+      console.log("Redirecting to Google authentication...")
       // The user will be redirected to Google for authentication
     } catch (err: any) {
+      console.error("Google login error:", err)
       setError(err.message || 'Failed to sign in with Google')
       toast.error(err.message || 'Failed to sign in with Google')
       setLoading(false)
