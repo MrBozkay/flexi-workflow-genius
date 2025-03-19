@@ -140,7 +140,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
     try {
       console.log("Initiating Google login...")
       
-      // Explicitly use the full URL for the callback
+      // Use an absolute URL with the correct path for the callback
       const callbackUrl = `${window.location.origin}/auth/callback`
       console.log("Using callback URL:", callbackUrl)
       
